@@ -1,23 +1,39 @@
-import time
 import json
+import os
+import time
+
 import redis
-from db import init_db
 
-r = redis.Redis(host="redis", port=6379)
-db = init_db()
+from db import get_db, init_db
 
-print("Worker started, waiting for jobs...")
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+QUEUE_NAME = os.getenv("REDIS_QUEUE", "jobs")
+PROCESSING_TIME = int(os.getenv("WORKER_PROCESSING_TIME", "5"))
 
-while True:
-    _, message = r.blpop("jobs")
-    job = json.loads(message)
-    task_id = job["task_id"]
 
-    print(f"Processing task {task_id}")
-    time.sleep(5)
+def main() -> None:
+    init_db()
+    queue = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+    print("Worker started, waiting for jobs...")
 
-    curr = db.cursor()
-    curr.execute("UPDATE tasks SET status='completed' WHERE id=%s", (task_id,))
-    db.commit()
+    while True:
+        _, message = queue.blpop(QUEUE_NAME)
+        job = json.loads(message)
+        task_id = job.get("task_id")
+        if task_id is None:
+            continue
 
-    print(f"Task {task_id} completed")
+        print(f"Processing task {task_id}")
+        time.sleep(PROCESSING_TIME)
+
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE tasks SET status='completed' WHERE id=%s", (task_id,))
+
+        print(f"Task {task_id} completed")
+
+
+if __name__ == "__main__":
+    main()
