@@ -6,8 +6,21 @@ import redis
 
 from db import get_db, init_db
 
+
+def _parse_port(value: str | None, default: int) -> int:
+    if not value:
+        return default
+    candidate = value.strip()
+    if candidate.startswith(("tcp://", "http://", "https://")):
+        candidate = candidate.split(":")[-1]
+    try:
+        return int(candidate)
+    except ValueError:
+        return default
+
+
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_PORT = _parse_port(os.getenv("REDIS_PORT"), 6379)
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 QUEUE_NAME = os.getenv("REDIS_QUEUE", "jobs")
 PROCESSING_TIME = int(os.getenv("WORKER_PROCESSING_TIME", "5"))
