@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: localhost:32000/frontend:v1
+          image: localhost:32000/front:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
