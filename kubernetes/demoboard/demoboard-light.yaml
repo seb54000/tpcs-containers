@@ -4,17 +4,17 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: demoboard-light
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: demoboard-api-sqlite
-  namespace: demoboard-light
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 256Mi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: demoboard-api-sqlite
+#   namespace: demoboard-light
+# spec:
+#   accessModes: ["ReadWriteOnce"]
+#   resources:
+#     requests:
+#       storage: 256Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -44,13 +44,13 @@ spec:
               value: /data/tasks.db
             - name: ENABLE_WORKER
               value: "false"
-          volumeMounts:
-            - name: sqlite-data
-              mountPath: /data
-      volumes:
-        - name: sqlite-data
-          persistentVolumeClaim:
-            claimName: demoboard-api-sqlite
+      #     volumeMounts:
+      #       - name: sqlite-data
+      #         mountPath: /data
+      # volumes:
+      #   - name: sqlite-data
+      #     persistentVolumeClaim:
+      #       claimName: demoboard-api-sqlite
 ---
 apiVersion: v1
 kind: Service
@@ -103,20 +103,18 @@ kind: Ingress
 metadata:
   name: demoboard-light
   namespace: demoboard-light
-  annotations:
-    kubernetes.io/ingress.class: nginx
 spec:
   rules:
-    - host: demoboard-light.local
+    - host: vm00.tpcsonline.org
       http:
         paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: api-service
-                port:
-                  number: 8000
+          # - path: /api
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: api-service
+          #       port:
+          #         number: 8000
           - path: /
             pathType: Prefix
             backend:
