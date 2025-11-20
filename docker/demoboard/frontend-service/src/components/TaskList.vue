@@ -18,16 +18,25 @@
     </div>
     <ul v-else class="task-list">
       <li v-for="task in tasks" :key="task.id" class="task-item">
-        <div>
+        <div class="task-meta">
           <strong>{{ task.title }}</strong>
           <span class="status" :data-status="task.status">{{ task.status }}</span>
         </div>
-        <button
-          @click="startJob(task.id)"
-          :disabled="task.status !== 'pending' || loading"
-        >
-          Lancer traitement
-        </button>
+        <div class="actions">
+          <button
+            @click="startJob(task.id)"
+            :disabled="task.status !== 'pending' || loading"
+          >
+            Lancer traitement
+          </button>
+          <button
+            class="secondary"
+            @click="deleteTask(task.id)"
+            :disabled="loading"
+          >
+            Supprimer
+          </button>
+        </div>
       </li>
     </ul>
   </section>
@@ -85,6 +94,23 @@ const startJob = async (taskId) => {
     await handleResponse(
       await fetch(`${API_BASE}/tasks/${taskId}/start-job`, {
         method: "POST",
+      }),
+    );
+    await loadTasks();
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+const deleteTask = async (taskId) => {
+  loading.value = true;
+  error.value = "";
+  try {
+    await handleResponse(
+      await fetch(`${API_BASE}/tasks/${taskId}`, {
+        method: "DELETE",
       }),
     );
     await loadTasks();
@@ -159,9 +185,19 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+}
+
+.task-meta {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .status {
@@ -169,6 +205,12 @@ button:disabled {
   text-transform: capitalize;
   font-size: 0.9rem;
   color: #475569;
+}
+
+.secondary {
+  background-color: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #94a3b8;
 }
 
 .status[data-status="completed"] {
