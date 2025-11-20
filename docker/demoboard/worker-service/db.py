@@ -1,4 +1,5 @@
 import os
+import time
 from contextlib import contextmanager
 from typing import Iterator
 
@@ -11,16 +12,28 @@ DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "tasks")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+DB_MAX_RETRIES = int(os.getenv("DB_MAX_RETRIES", "10"))
+DB_RETRY_DELAY = float(os.getenv("DB_RETRY_DELAY", "2"))
 
 
 def _create_connection() -> connection:
-    return psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    last_exc: Exception | None = None
+    for attempt in range(1, DB_MAX_RETRIES + 1):
+        try:
+            return psycopg2.connect(
+                host=DB_HOST,
+                port=DB_PORT,
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+            )
+        except psycopg2.OperationalError as exc:
+            last_exc = exc
+            print(
+                f"[worker-service] Database unavailable (attempt {attempt}/{DB_MAX_RETRIES}): {exc}"
+            )
+            time.sleep(DB_RETRY_DELAY)
+    raise RuntimeError("Could not connect to database") from last_exc
 
 
 def init_db() -> None:

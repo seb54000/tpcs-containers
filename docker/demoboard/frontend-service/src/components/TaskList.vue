@@ -12,6 +12,9 @@
     </form>
 
     <p v-if="error" class="error">{{ error }}</p>
+    <p v-if="workerDisabledMessage" class="hint">
+      {{ workerDisabledMessage }}
+    </p>
 
     <div v-if="tasks.length === 0" class="empty-state">
       Aucune tâche pour le moment.
@@ -24,6 +27,7 @@
         </div>
         <div class="actions">
           <button
+            v-if="enableWorker"
             @click="startJob(task.id)"
             :disabled="task.status !== 'pending' || loading"
           >
@@ -43,9 +47,11 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+const enableWorker =
+  (import.meta.env.VITE_ENABLE_WORKER ?? "true").toString().toLowerCase() === "true";
 
 const tasks = ref([]);
 const title = ref("");
@@ -88,6 +94,9 @@ const addTask = async () => {
 };
 
 const startJob = async (taskId) => {
+  if (!enableWorker) {
+    return;
+  }
   loading.value = true;
   error.value = "";
   try {
@@ -120,6 +129,12 @@ const deleteTask = async (taskId) => {
     loading.value = false;
   }
 };
+
+const workerDisabledMessage = computed(() =>
+  enableWorker
+    ? ""
+    : "Mode light : le traitement long est désactivé. Utilisez cette interface pour créer ou supprimer vos tâches.",
+);
 
 onMounted(async () => {
   await loadTasks();
@@ -232,5 +247,11 @@ button:disabled {
 .error {
   color: #dc2626;
   margin-bottom: 0.5rem;
+}
+
+.hint {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
 }
 </style>

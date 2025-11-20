@@ -11,6 +11,11 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -20,6 +25,7 @@ services:
   api-service:
     build: ./api-service
     environment:
+      DB_BACKEND: postgres
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: tasks
@@ -27,6 +33,7 @@ services:
       DB_PASSWORD: postgres
       REDIS_HOST: redis
       REDIS_QUEUE: jobs
+      ENABLE_WORKER: "true"
     depends_on:
       - db
       - redis
@@ -48,7 +55,11 @@ services:
       - redis
 
   frontend-service:
-    build: ./frontend-service
+    build:
+      context: ./frontend-service
+      args:
+        VITE_API_URL: /api
+        VITE_ENABLE_WORKER: "true"
     depends_on:
       - api-service
     ports:
