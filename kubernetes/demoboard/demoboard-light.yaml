@@ -34,7 +34,7 @@ spec:
       containers:
         - name: api
           image: localhost:32000/api:v1
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
@@ -82,7 +82,7 @@ spec:
       containers:
         - name: frontend
           image: localhost:32000/front:v1
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 ---
