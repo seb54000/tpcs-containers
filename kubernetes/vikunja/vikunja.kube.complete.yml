@@ -69,7 +69,7 @@ spec:
         app: api
     spec:
       containers:
-      - image: localhost:32000/api:v1
+      - image: localhost:32000/api:v2
         name: api
         env:
           - name: VIKUNJA_DATABASE_TYPE

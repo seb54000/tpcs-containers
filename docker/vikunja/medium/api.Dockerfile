@@ -5,7 +5,7 @@ WORKDIR /app/vikunja
 RUN apt-get update
 RUN apt-get install -y ?...?
 
-ADD https://dl.vikunja.io/api/??.........??
+ADD https://dl.vikunja.io/vikunja/??.........??
 
 RUN unzip ??.........?? -d vikunja
 
