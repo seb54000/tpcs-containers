@@ -104,6 +104,7 @@ metadata:
   name: demoboard-light
   namespace: demoboard-light
 spec:
+  ingressClassName: nginx
   rules:
     - host: vm00.tpcsonline.org
       http:

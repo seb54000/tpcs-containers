@@ -256,6 +256,7 @@ metadata:
   name: demoboard
   namespace: demoboard
 spec:
+  ingressClassName: nginx
   rules:
     - host: vm00.tpcsonline.org
       http:
