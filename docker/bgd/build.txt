@@ -1,0 +1,2 @@
+docker build -t seb54000/bgd:latest .
+docker push seb54000/bgd:latest
