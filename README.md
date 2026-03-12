@@ -4,3 +4,4 @@
 ## Changelog
 
 - 2026-03-12 : Add bgd custom app + bgd.rollout.yml for demo purpose
+- 2026-03-12 : rollout demo for eks with topology constriaints

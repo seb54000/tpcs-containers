@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: bgd
+  name: bgd
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: bgd
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: bgd
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: bgd
+      containers:
+      - image: seb54000/bgd:latest
+        name: bgd
+        env:
+        - name: COLOR
+          value: "green"
+        - name: BALL_COUNT
+          value: "5"
+        - name: BALL_SIZE
+          value: "42"
+        resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: bgd
+  name: bgd
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: bgd
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bgd
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: bgd.vm00-svc.eks00.tpcsonline.org
+    http:
+     paths:
+     - pathType: Prefix
+       path: "/"
+       backend:
+         service:
+           name: bgd
+           port:
+             number: 8080
